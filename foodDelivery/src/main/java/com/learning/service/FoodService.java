@@ -1,25 +1,22 @@
-//user service interface
-
 package com.learning.service;
 
-import java.util.List;
-import java.util.Optional;
-
 import com.learning.entity.FoodItems;
+import com.learning.exception.AlreadyExistsException;
+import com.learning.exception.FoodTypeNotFoundException;
 import com.learning.exception.IdNotFoundException;
 
 public interface FoodService {
 
-	public FoodItems add(FoodItems foodItems) throws IdNotFoundException;
+	FoodItems addFoodItem(FoodItems foodItems) throws AlreadyExistsException;
 
-	public FoodItems update(int id, FoodItems foodItems) throws IdNotFoundException;
+	FoodItems updateFoodItem(FoodItems foodItems) throws IdNotFoundException;
 
-	public FoodItems getFoodById(int id) throws IdNotFoundException;
+	FoodItems getFoodItemById(int foodId) throws IdNotFoundException;
 
-	public FoodItems[] getAllFoods();
+	String deleteFoodItemById(int foodId) throws IdNotFoundException;
 
-	public String deleteFoodById(int id) throws IdNotFoundException;
+	FoodItems[] getAllFoodItems();
 
-	public Optional<List<FoodItems>> getAllFoodDetails();
+	FoodItems[] getAllFoodsByFoodType(String foodType) throws FoodTypeNotFoundException;
 
 }

@@ -1,5 +1,6 @@
 package com.learning.service.impl;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -7,74 +8,78 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.learning.entity.FoodItems;
+import com.learning.exception.AlreadyExistsException;
+import com.learning.exception.FoodTypeNotFoundException;
 import com.learning.exception.IdNotFoundException;
 import com.learning.repo.FoodItemsRepo;
 import com.learning.service.FoodService;
 
-@Service // using this we get the singleton object
+@Service
 public class FoodServiceImpl implements FoodService {
 
 	@Autowired
 	private FoodItemsRepo foodItemsRepo;
 
 	@Override
-	public FoodItems add(FoodItems foodItems) throws IdNotFoundException {
+	public FoodItems addFoodItem(FoodItems foodItems) throws AlreadyExistsException {
 		boolean status = foodItemsRepo.existsByFoodId(foodItems.getFoodId());
 		if (status) {
-			throw new IdNotFoundException("Sorry food not found");
+			throw new AlreadyExistsException("Food Item Already Exist!");
 		}
 		FoodItems food2 = foodItemsRepo.save(foodItems);
 		return food2;
 	}
 
-//update
 	@Override
-	public FoodItems update(int id, FoodItems foodItems) throws IdNotFoundException {
+	public FoodItems updateFoodItem(FoodItems foodItems) throws IdNotFoundException {
+		if (!foodItemsRepo.existsById(foodItems.getFoodId())) {
+			throw new IdNotFoundException("Sorry Food Not Found");
+		}
 		return foodItemsRepo.save(foodItems);
 	}
 
-//get food by id
 	@Override
-	public FoodItems getFoodById(int id) throws IdNotFoundException {
-		Optional<FoodItems> optional = foodItemsRepo.findById(id);
+	public FoodItems getFoodItemById(int foodId) throws IdNotFoundException {
+		Optional<FoodItems> optional = foodItemsRepo.findById(foodId);
 		if (optional.isEmpty()) {
-			throw new IdNotFoundException("sorry food not found");
+			throw new IdNotFoundException("Sorry Food Not Found");
 		} else {
 			return optional.get();
 		}
 	}
 
-// get all foods
 	@Override
-	public FoodItems[] getAllFoods() {
+	public FoodItems[] getAllFoodItems() {
 		List<FoodItems> list = foodItemsRepo.findAll();
 		FoodItems[] array = new FoodItems[list.size()];
 		return list.toArray(array);
 	}
 
-//delete food by id
+	@SuppressWarnings("null")
 	@Override
-	public String deleteFoodById(int id) throws IdNotFoundException {
-		FoodItems optional;
-		try {
-			optional = this.getFoodById(id);
-			if (optional != null) {
-				throw new IdNotFoundException("food not found");
-			} else {
-				foodItemsRepo.deleteById(id);
-				return "food deleted";
+	public FoodItems[] getAllFoodsByFoodType(String foodType) throws FoodTypeNotFoundException {
+		List<FoodItems> foodItems = foodItemsRepo.findAll();
+		List<FoodItems> temp = new ArrayList<FoodItems>();
+		for (FoodItems foodItems2 : foodItems) {
+			if (foodItems2.getFoodType().toString().equals(foodType)) {
+				temp.add(foodItems2);
 			}
-		} catch (IdNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			throw new IdNotFoundException(e.getMessage());
 		}
+		if (temp.isEmpty()) {
+			throw new FoodTypeNotFoundException("Sorry Food Type Not Found");
+		}
+		FoodItems[] array = new FoodItems[temp.size()];
+		return temp.toArray(array);
 	}
 
-//get all food details
 	@Override
-	public Optional<List<FoodItems>> getAllFoodDetails() {
-		return Optional.ofNullable(foodItemsRepo.findAll());
-	}
+	public String deleteFoodItemById(int foodId) throws IdNotFoundException {
 
+		if (!foodItemsRepo.existsById(foodId)) {
+			throw new IdNotFoundException("sorry user with id " + foodId + " not found");
+		}
+		foodItemsRepo.deleteById(foodId);
+		return "Food Successfully deleted";
+
+	}
 }
